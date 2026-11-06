@@ -7,7 +7,7 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "dev": "vite",
-    "wait": "wait-on -t 180000 tcp:127.0.0.1:3001 && echo http://127.0.0.1:5180 && vite --logLevel error",
+    "wait": "wait-on -t 180000 tcp:127.0.0.1:3001 && echo http://localhost:5180 && vite --logLevel error",
     "preview": "vite preview",
     "test": "vitest run"
   },
